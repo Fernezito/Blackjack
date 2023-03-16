@@ -1,0 +1,146 @@
+import random
+
+# Función para crear la baraja
+def crear_baraja():
+    palos = ["♥", "♦", "♣", "♠"]
+    valores = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+    return [(palo, valor) for palo in palos for valor in valores]
+
+# Función para tomar una carta de la baraja
+def tomar_carta(baraja):
+    carta = random.choice(baraja)
+    baraja.remove(carta)
+    return carta
+
+# Función para obtener el valor de una mano de blackjack
+def valor_mano(mano):
+    valores_cartas = {"A": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "J": 10, "Q": 10, "K": 10}
+    valor = sum([valores_cartas[carta[1]] for carta in mano])
+    if any([carta[1] == "A" for carta in mano]) and valor <= 11:
+        valor += 10
+    return valor
+
+# Función para hacer una apuesta
+def hacer_apuesta(saldo):
+    while True:
+        apuesta = int(input(f"\nSaldo actual: {saldo}. ¿Cuánto quieres apostar? "))
+        if apuesta > saldo:
+            print("Apuesta inválida. Tu saldo es de", saldo)
+        else:
+            return apuesta
+
+# Función para dibujar las cartas
+def dibujos_cartas(mano):
+    dibujos = []
+    for carta in mano:
+        dibujo = []
+        dibujo.append("┌─────┐")
+        dibujo.append(f"│{carta[1]:<2}      │")
+        dibujo.append("│        │")
+        dibujo.append(f"│   {carta[0]}  ‎ │")
+        dibujo.append("│        │")
+        dibujo.append(f"│     {carta[1]:>2} │")
+        dibujo.append("└─────┘")
+        dibujos.append(dibujo)
+    return dibujos
+
+# Función para dibujar la mesa
+def dibujo_mesa():
+    dibujo = []
+    dibujo.append("┌─────────────────────────┐")
+    for i in range(5):
+        dibujo.append("│                                        │")
+    dibujo.append("└─────────────────────────┘")
+    return dibujo
+
+# Función principal del juego de blackjack
+def jugar_blackjack():
+    saldo = 500
+    baraja = crear_baraja()
+
+    # Dibujo de Blackjack
+    print("             ==============================================")
+    print("             |                                            |")
+    print("             |                 BLACKJACK                  |")
+    print("             |                                            |")
+    print("             ==============================================")
+
+    while True:
+        print("\n¡Bienvenido al Blackjack!")
+        print("-------------------------")
+        apuesta = hacer_apuesta(saldo)
+        mano_jugador = [tomar_carta(baraja), tomar_carta(baraja)]
+        mano_dealer = [tomar_carta(baraja), tomar_carta(baraja)]
+
+        dibujos_jugador = dibujos_cartas(mano_jugador)
+        dibujos_dealer = dibujos_cartas(mano_dealer)
+
+        print("\n-------------------------")
+        print("Tu mano:")
+        for dibujo in dibujos_jugador:
+            for linea in dibujo:
+                print(linea)
+
+        print("\n-------------------------")
+        print("Carta visible del dealer:")
+        for linea in dibujos_dealer[0]:
+            print(linea)
+
+        print("\n")
+        dibujos_mesa = dibujo_mesa()
+        for linea in dibujos_mesa:
+            print(linea)
+
+        while True:
+            opcion = input("¿Quieres otra carta? (s/n) ").lower()
+            if opcion == "s":
+                mano_jugador.append(tomar_carta(baraja))
+                dibujos_jugador = dibujos_cartas(mano_jugador)
+                print("Tu mano:")
+                for dibujo in dibujos_jugador:
+                    for linea in dibujo:
+                        print(linea)
+                if valor_mano(mano_jugador) > 21:
+                    print("\n-------------------------")
+                    print("Te pasaste de 21. Pierdes")
+                    print("-------------------------")
+                    saldo -= apuesta
+                    break
+            elif opcion == "n":
+                break
+
+        if valor_mano(mano_jugador) <= 21:
+            while valor_mano(mano_dealer) < 17:
+                mano_dealer.append(tomar_carta(baraja))
+            dibujos_dealer = dibujos_cartas(mano_dealer)
+            print("Tu mano final es:")
+            for dibujo in dibujos_jugador:
+                for linea in dibujo:
+                    print(linea)
+            print("La mano final del dealer es:")
+            for dibujo in dibujos_dealer:
+                for linea in dibujo:
+                    print(linea)
+            valor_jugador = valor_mano(mano_jugador)
+            valor_dealer = valor_mano(mano_dealer)
+            if valor_jugador > valor_dealer or valor_dealer > 21:
+                print("\n-------------------------")
+                print("       ¡Ganaste!")
+                print("-------------------------")
+                saldo += apuesta
+            elif valor_jugador < valor_dealer:
+                print("\n-------------------------")
+                print("       Perdiste :(")
+                print("-------------------------")
+                saldo -= apuesta
+            else:
+                print("\n-------------------------")
+                print("         Empate")
+                print("-------------------------")
+        if saldo == 0:
+            print("\nTe has quedado sin saldo.")
+            break
+        elif input("\n¿Quieres jugar de nuevo? (s/n) ").lower() != "s":
+            break
+
+jugar_blackjack()
